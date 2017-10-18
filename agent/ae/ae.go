@@ -160,7 +160,7 @@ FullSync:
 			case <-time.After(s.Interval + stagger(s.Interval)):
 				continue FullSync
 
-			// do patial syncs on demand
+			// do partial syncs on demand
 			case <-s.SyncChanges.Notif():
 				if s.Paused() {
 					continue

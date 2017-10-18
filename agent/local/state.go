@@ -143,7 +143,7 @@ type State struct {
 	// Checks tracks the local checks
 	checks map[types.CheckID]*CheckState
 
-	// metadata tracks the local metadata fields
+	// metadata tracks the node metadata fields
 	metadata map[string]string
 
 	// discardCheckOutput stores whether the output of health checks
@@ -596,8 +596,7 @@ func (l *State) updateSyncState() error {
 			continue
 		}
 
-		// If the service is scheduled for removal skip it.
-		// todo(fs): is this correct?
+		// If the service is already scheduled for removal skip it
 		if ls.Deleted {
 			continue
 		}
@@ -637,8 +636,7 @@ func (l *State) updateSyncState() error {
 			continue
 		}
 
-		// If the check is scheduled for removal skip it.
-		// todo(fs): is this correct?
+		// If the check is already scheduled for removal skip it.
 		if lc.Deleted {
 			continue
 		}
@@ -678,10 +676,13 @@ func (l *State) updateSyncState() error {
 func (l *State) SyncFull() error {
 	// note that we do not acquire the lock here since the methods
 	// we are calling will do that themself.
+	//
+	// Also note that we don't hold the lock for the entire operation
+	// but release it between the two calls. This is not an issue since
+	// the algorithm is best-effort to achieve eventual consistency.
+	// SyncChanges will sync whatever updateSyncState() has determined
+	// needs updating.
 
-	// todo(fs): is it an issue that we do not hold the lock for the entire time?
-	// todo(fs): IMO, this doesn't matter since SyncChanges will sync whatever
-	// todo(fs): was determined in the update step.
 	if err := l.updateSyncState(); err != nil {
 		return err
 	}
